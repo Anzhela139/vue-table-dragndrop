@@ -32,6 +32,9 @@
 
   --color-heading: var(--vt-c-text-light-1);
   --color-text: var(--vt-c-text-light-1);
+  --light-navy: #1253a2;
+  --pale-grey: #eeeff1;
+  --pale-grey-two: #fbfcfd;
 
   --section-gap: 160px;
 }
@@ -48,6 +51,34 @@
     --color-heading: var(--vt-c-text-dark-1);
     --color-text: var(--vt-c-text-dark-2);
   }
+}
+
+@font-face {
+  font-family: 'MyriadPro';
+  font-weight: 400;
+  font-style: normal;
+  src: url(./fonts/regular.otf);
+}
+
+@font-face {
+  font-family: 'MyriadPro';
+  font-weight: 500;
+  font-style: normal;
+  src: url(./fonts/bold.otf);
+}
+
+@font-face {
+  font-family: 'MyriadPro';
+  font-weight: 600;
+  font-style: normal;
+  src: url(./fonts/semi-bold.otf);
+}
+
+@font-face {
+  font-family: 'MyriadPro';
+  font-weight: 500;
+  font-style: italic;
+  src: url(./fonts/bold-italic.otf);
 }
 
 *,

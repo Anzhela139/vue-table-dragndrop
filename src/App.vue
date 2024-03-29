@@ -1,7 +1,34 @@
-<script setup>
+<script>
 import H1Title from './components/H1Title.vue'
-import TheWelcome from './components/TheWelcome.vue'
 import Sidebar from './components/Sidebar.vue'
+import Products from './components/Products.vue'
+export default {
+  components: {
+    H1Title,
+    Sidebar,
+    Products
+  },
+  data() {
+    return {
+      count: 0
+    }
+  },
+
+  // Methods are functions that mutate state and trigger updates.
+  // They can be bound as event handlers in templates.
+  methods: {
+    increment() {
+      this.count++
+    }
+  },
+
+  // Lifecycle hooks are called at different stages
+  // of a component's lifecycle.
+  // This function will be called when the component is mounted.
+  mounted() {
+    console.log(`The initial count is ${this.count}.`)
+  }
+}
 </script>
 
 <template>
@@ -9,7 +36,7 @@ import Sidebar from './components/Sidebar.vue'
   <Sidebar />
   <main class="main-wrapper">
     <div class="container">
-
+      <Products />
     </div>
   </main>
 </template>
