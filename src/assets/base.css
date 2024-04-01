@@ -19,6 +19,7 @@
   --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+  --v-input-control-height: 35px;
 }
 
 /* semantic color variables for this project */
@@ -57,28 +58,28 @@
   font-family: 'MyriadPro';
   font-weight: 400;
   font-style: normal;
-  src: url(./fonts/regular.otf);
+  src: url(./fonts/MyriadPro/regular.otf);
 }
 
 @font-face {
   font-family: 'MyriadPro';
   font-weight: 500;
   font-style: normal;
-  src: url(./fonts/bold.otf);
+  src: url(./fonts/MyriadPro/bold.otf);
 }
 
 @font-face {
   font-family: 'MyriadPro';
   font-weight: 600;
   font-style: normal;
-  src: url(./fonts/semi-bold.otf);
+  src: url(./fonts/MyriadPro/semi-bold.otf);
 }
 
 @font-face {
   font-family: 'MyriadPro';
   font-weight: 500;
   font-style: italic;
-  src: url(./fonts/bold-italic.otf);
+  src: url(./fonts/MyriadPro/bold-italic.otf);
 }
 
 *,
