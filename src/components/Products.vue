@@ -20,19 +20,20 @@ export default {
             price: 0,
             weight: 0,
             startX: 0,
+            resingColumn: null,
             startWidth: 0,
             tableWidth: 1092,
             headerGrid: '50px repeat(6, auto)',
             bodyGrid: 'repeat(5, auto)',
             cols: {
-                'name': { title: 'Наименование еденицы', show: true, width: 'auto' },
-                'cost': { title: 'Цена', show: true, width: '14%' },
-                'amount': { title: 'Кол-во', show: true, width: '14%' },
-                'product_name': { title: 'Название товара', show: true, width: '14%' },
-                'company': { title: 'Компания', show: false, width: '14%' },
-                'price': { title: 'Итого', show: true, width: '11%' },
-                'weight': { title: 'Вес', type: 'number', show: false, width: '11%' },
-                'isActive': { title: 'Активен', type: 'bool', show: false, width: '11%' },
+                'name': { title: 'Наименование еденицы', show: true, defaultProcent: 0, width: 0 },
+                'cost': { title: 'Цена', show: true, defaultProcent: 14, width: 0 },
+                'amount': { title: 'Кол-во', show: true, defaultProcent: 14, width: 0 },
+                'product_name': { title: 'Название товара', show: true, defaultProcent: 14, width: 0 },
+                'company': { title: 'Компания', show: false, defaultProcent: 14, width: 0 },
+                'price': { title: 'Итого', show: true, defaultProcent: 11, width: 0 },
+                'weight': { title: 'Вес', type: 'number', show: false, defaultProcent: 11, width: 0 },
+                'isActive': { title: 'Активен', type: 'bool', show: false, defaultProcent: 11, width: 0 },
             }
         }
     },
@@ -41,45 +42,78 @@ export default {
             return parseFloat(product.cost) * parseFloat(product.amount);
         },
         getTotalValue(val) {
-            console.log(this.products)
             return this.products.reduce((a, b) => a + parseFloat(b[val]), 0)
         },
         setTotal() {
             this.cost = this.getTotalValue("cost")
             this.amount = this.getTotalValue("amount")
-            // this.price = this.getTotalValue("price")
+            this.price = this.getTotalValue("price")
             this.weight = this.getTotalValue("weight")
         },
         resizeHandler(event) {
             console.log(event)
             event.preventDefault();
             this.startX = event.pageX;
-            this.startWidth = parseInt(getComputedStyle(event.target.parentNode).width);
-            document.addEventListener('mousemove', this.resizeColumn);
-            document.addEventListener('mouseup', this.stopResize);
+            this.resingColumn = event.target.closest('[data-target]')
+
+            this.startWidth = parseInt(this.resingColumn.getBoundingClientRect().width);
+            const bindResizeColumn = this.resizeColumn.bind(this)
+            document.addEventListener('mousemove', bindResizeColumn, false);
+            document.addEventListener('mouseup', () => {
+                document.removeEventListener('mousemove', bindResizeColumn, false);
+            }, false);
         },
         resizeColumn(event) {
-            const width = this.startWidth + event.pageX - this.startX;
-            const index = event.target.dataIndex;
-            console.log(event.target)
-            console.log(this.$refs.table.querySelectorAll(`.body-cell[data-index=${index}]`))
-            this.$refs.table.querySelectorAll(`.body-cell[data-index=${index}]`).forEach(function (cell) {
-                cell.style.width = `${width}px`;
-            });
+            const target = this.resingColumn.dataset.target;
+
+            const shownColsArray = Object.entries(this.cols);
+            const index = shownColsArray.findIndex((el) => el[0] === target)
+            if (index >= 0) {
+                console.log(event.pageX, this.startX)
+                const width = this.cols[target].width + event.pageX - this.startX;
+                console.log(width, this.startWidth, target)
+                const reliableWidth = (val, summWidth) => {
+                    return val >= 100 ? ((summWidth - val) <= 100 ? summWidth - 100 : val) : 100
+                }
+                const isValAuto = Boolean(shownColsArray[index][1].defaultProcent)
+                // console.log(shownColsArray[index])
+                const oldProcentWidth = isValAuto ? this.startWidth : shownColsArray[index][1].width
+                // console.log('shdj', shownColsArray[index][1].width)
+                const newProcentWidth = (width - this.startWidth) * (this.tableWidth / 100)
+                // console.log('wqhjq', width - this.startWidth, this.tableWidth / 100)
+                // console.log('wustyd', width, this.startWidth, oldProcentWidth, newProcentWidth)
+                const nextWidth = shownColsArray[index + 1][1].width
+                const summWidth = (nextWidth + oldProcentWidth)
+                // console.log(oldProcentWidth + newProcentWidth, oldProcentWidth - newProcentWidth)
+                const newNextWidth = summWidth - width
+                this.cols[target].width = reliableWidth(width, summWidth)
+                console.log(summWidth)
+                console.log(reliableWidth(width, summWidth) + reliableWidth(newNextWidth, summWidth))
+                this.cols[shownColsArray[index + 1][0]].width = reliableWidth(newNextWidth, summWidth)
+            }
+
+            this.setGrid()
         },
         stopResize() {
             document.removeEventListener('mousemove', this.resizeColumn);
         },
         setGrid() {
-            this.tableWidth = this.$refs.table.getBoundingClientRect().width / 100
+            this.tableWidth = this.$refs.table.getBoundingClientRect().width
+            const tableProcent = this.tableWidth / 100
             const shownColsArray = (obj) => Object.entries(obj).filter((el) => el[1].show);
 
 
             const filtered = shownColsArray(this.cols); 
-            const grid = filtered.map((el) => /%/.test(el[1].width) ? `${this.tableWidth * parseInt(el[1].width.replace(/%/, ''))}px` : el[1].width).join(' ')
-            this.headerGrid = `50px 9% ${grid}`
-            console.log(this.headerGrid);
-            this.bodyGrid = grid
+            const grid = filtered.filter((el) => el[1].defaultProcent).map((el) => {
+                const column = Math.abs( el[1].width ? el[1].width : tableProcent * el[1].defaultProcent )
+                console.log(this.cols[el[0]].width, column)
+                this.cols[el[0]].width = column
+                return column
+            })
+            // console.log(grid)
+            this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
+            // console.log(this.headerGrid);
+            this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
         }
     },
 
@@ -98,6 +132,11 @@ export default {
         this.product_names = Array(12).fill("Мраморный щебень")
         this.setGrid()
         this.setTotal()
+        const bindedSetGrid = this.setGrid.bind(this)
+
+        window.addEventListener('resize', () => {
+            bindedSetGrid()
+        }, true);
     }
 }
 </script>
@@ -152,27 +191,27 @@ export default {
             <div class="product-table resizable-table" ref="table">
                 <div class="product-table__header">
                     <div class="cell header-title fr-column"></div>
-                    <div class="cell header-title" data-index="0">
-                        <div class="resizer" @mousedown="resizeHandler"></div>
+                    <div class="cell header-title">
+                        <div class="resizer"></div>
                         Действие
                     </div>
-                    <div class="cell header-title" data-index="1" v-if="cols.name.show">
-                        <div class="resizer" @mousedown="resizeHandler"></div>
+                    <div class="cell header-title" v-if="cols.name.show">
+                        <div class="resizer"></div>
                         Наименование еденицы
                     </div>
-                    <div class="cell header-title" data-index="2" v-if="cols.cost.show">
+                    <div class="cell header-title" data-target="name" v-if="cols.cost.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
                         Цена
                     </div>
-                    <div class="cell header-title" data-index="3" v-if="cols.amount.show">
+                    <div class="cell header-title" data-target="cost" v-if="cols.amount.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
                         Кол-во
                     </div>
-                    <div class="cell header-title" data-index="4" v-if="cols.product_name.show">
+                    <div class="cell header-title" data-target="amount" v-if="cols.product_name.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
                         Название товара
                     </div>
-                    <div class="cell header-title ls-column" data-index="5" v-if="cols.price.show">
+                    <div class="cell header-title ls-column" data-target="product_name" v-if="cols.price.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
                         Итого
                     </div>
@@ -183,7 +222,7 @@ export default {
                             <div class="product-table__row">
                                 <DragHandle>
                                     <div class="product-table__handle">
-                                        <div class="cell body-cell fr-column" data-index="0">
+                                        <div class="cell body-cell fr-column" data-target="0">
                                             <svg width="11px" height="12px" viewBox="0 0 11 12" version="1.1"
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -209,7 +248,7 @@ export default {
                                             </svg>
                                             {{ index + 1 }}
                                         </div>
-                                        <div class="cell body-cell" data-index="1">
+                                        <div class="cell body-cell" data-target="1">
                                             <svg width="3px" height="13px" viewBox="0 0 3 13" version="1.1"
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -237,20 +276,20 @@ export default {
                                     </div>
                                 </DragHandle>
                                 <div class="product-table__row-body">
-                                    <div class="cell body-cell" data-index="2" v-if="cols.name.show">
+                                    <div class="cell body-cell" data-target="2" v-if="cols.name.show">
                                         <v-select :value="product.name" :items="names" variant="outlined"></v-select>
                                     </div>
-                                    <div class="cell body-cell" data-index="3" v-if="cols.cost.show">
+                                    <div class="cell body-cell" data-target="3" v-if="cols.cost.show">
                                         <v-text-field :value="product.cost" variant="outlined"></v-text-field>
                                     </div>
-                                    <div class="cell body-cell" data-index="4" v-if="cols.amount.show">
+                                    <div class="cell body-cell" data-target="4" v-if="cols.amount.show">
                                         <v-text-field :value="product.amount" variant="outlined"></v-text-field>
                                     </div>
-                                    <div class="cell body-cell" data-index="5" v-if="cols.product_name.show">
+                                    <div class="cell body-cell" data-target="5" v-if="cols.product_name.show">
                                         <v-select :value="product.product_name" :items="product_names"
                                             variant="outlined"></v-select>
                                     </div>
-                                    <div class="cell body-cell ls-column" data-index="6" v-if="cols.price.show">
+                                    <div class="cell body-cell ls-column" data-target="6" v-if="cols.price.show">
                                         <v-text-field :value="getPrice(product)" disabled
                                             variant="outlined"></v-text-field>
                                     </div>
@@ -322,10 +361,17 @@ export default {
     cursor: move;
 }
 
+.product-table__handle .body-cell {
+    display: flex;
+    align-items: center; 
+    gap: 5px;
+}
+
 .product-table__row {
     display: grid;
     grid-template-columns: 83px auto;
     padding-bottom: 10px;
+    user-select: none;
 }
 
 .product-table__row>span {
@@ -351,7 +397,7 @@ export default {
 } */
 
 .header-title {
-    padding: 14px 0 14px 7.5px;
+    padding: 14px 0 14px 11px;
     font-family: MyriadPro;
     font-size: 16px;
     font-weight: 600;
