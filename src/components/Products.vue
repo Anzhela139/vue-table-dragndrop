@@ -69,9 +69,10 @@ export default {
             const shownColsArray = Object.entries(this.cols);
             const index = shownColsArray.findIndex((el) => el[0] === target)
             if (index >= 0) {
-                console.log(event.pageX, this.startX)
+                // console.log(target, shownColsArray[index + 1][0])
                 const width = this.cols[target].width + event.pageX - this.startX;
-                console.log(width, this.startWidth, target)
+                if (width === this.cols[target].width || (event.pageX - this.startX) === 0) return
+                // console.log(width, this.startWidth, target)
                 const reliableWidth = (val, summWidth) => {
                     return val >= 100 ? ((summWidth - val) <= 100 ? summWidth - 100 : val) : 100
                 }
@@ -83,16 +84,16 @@ export default {
                 // console.log('wqhjq', width - this.startWidth, this.tableWidth / 100)
                 // console.log('wustyd', width, this.startWidth, oldProcentWidth, newProcentWidth)
                 const nextWidth = shownColsArray[index + 1][1].width
-                const summWidth = (nextWidth + oldProcentWidth)
+                const summWidth = (this.cols[target].width +  this.cols[shownColsArray[index + 1][0]].width)
                 // console.log(oldProcentWidth + newProcentWidth, oldProcentWidth - newProcentWidth)
                 const newNextWidth = summWidth - width
                 this.cols[target].width = reliableWidth(width, summWidth)
-                console.log(summWidth)
-                console.log(reliableWidth(width, summWidth) + reliableWidth(newNextWidth, summWidth))
+                console.log('summWidth', summWidth)
+                // console.log(reliableWidth(width, summWidth) + reliableWidth(newNextWidth, summWidth))
                 this.cols[shownColsArray[index + 1][0]].width = reliableWidth(newNextWidth, summWidth)
+                // console.log(this.cols[target].width, this.cols[shownColsArray[index + 1][0]].width)
+                this.setGrid()
             }
-
-            this.setGrid()
         },
         stopResize() {
             document.removeEventListener('mousemove', this.resizeColumn);
@@ -106,14 +107,31 @@ export default {
             const filtered = shownColsArray(this.cols); 
             const grid = filtered.filter((el) => el[1].defaultProcent).map((el) => {
                 const column = Math.abs( el[1].width ? el[1].width : tableProcent * el[1].defaultProcent )
-                console.log(this.cols[el[0]].width, column)
+                // console.log(this.cols[el[0]].width, column)
                 this.cols[el[0]].width = column
                 return column
             })
-            // console.log(grid)
+            console.log(grid.reduce((a, b) => a + b, 0))
             this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-            // console.log(this.headerGrid);
-            this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
+            console.log(this.headerGrid);
+            document.querySelectorAll('.product-table__row-body').forEach((el) => el.style.gridTemplateColumns = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`)
+            // this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
+        },
+        toggleColumn(event, col) {
+            col.hide = !event.target.checked
+            this.setGrid()
+        },
+        addProduct() {
+            this.products.push({
+                    "id": this.products.length,
+                    "name": "Мраморный щебень фр. 2-5 мм, 25кг",
+                    "cost": "1231",
+                    "amount": "12",
+                    "product_name": "Мраморный щебень",
+                    "weight": 25
+                });
+            this.products[this.products.length - 1].price = this.products[this.products.length - 1].cost * this.products[this.products.length - 1].amount
+            this.setTotal()
         }
     },
 
@@ -128,6 +146,9 @@ export default {
                 "weight": 25
             }
         });
+        this.products.forEach((el) => {
+            el.price = el.cost * el.amount
+        })
         this.names = Array(12).fill("Мраморный щебень фр. 2-5 мм, 25кг")
         this.product_names = Array(12).fill("Мраморный щебень")
         this.setGrid()
@@ -162,13 +183,13 @@ export default {
         </div>
         <ul v-if="isOpen" class="filter-list">
             <li v-for="col in cols" :key="col.field">
-                <v-checkbox :label="col.title" :checked="!col.hide" @change="col.hide = !$event.target.checked"
+                <v-checkbox :label="col.title" :checked="!col.hide" @change="toggleColumn($event, col)"
                     :color="'#000'" v-model="col.show"></v-checkbox>
             </li>
         </ul>
     </div>
-    <div class="block-wrapper with-padding">
-        <button class="button btn-add btn-primary" type="button">
+    <div class="block-wrapper with-padding" @click="isOpen = false">
+        <button class="button btn-add btn-primary" type="button" @click="addProduct">
             <svg width="11px" height="11px" viewBox="0 0 11 11" version="1.1" xmlns="http://www.w3.org/2000/svg"
                 xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>Combined Shape</title>
@@ -186,7 +207,7 @@ export default {
             </svg>
             Добавить строку</button>
     </div>
-    <div class="block-wrapper">
+    <div class="block-wrapper" @click="isOpen = false">
         <div class="product-table__wrapper">
             <div class="product-table resizable-table" ref="table">
                 <div class="product-table__header">
@@ -217,6 +238,9 @@ export default {
                     </div>
                 </div>
                 <div class="product-table__body">
+                    <div class="product-table__border-shadows">
+                        <div class="product-table__border-shadow" v-for="(product, index) in products"></div>
+                    </div>
                     <SlickList axis="y" v-model:list="products" useDragHandle>
                         <SlickItem v-for="(product, index) in products" :key="products.id" :index="index">
                             <div class="product-table__row">
@@ -353,6 +377,7 @@ export default {
 
 .product-table__body {
     margin-top: 5px;
+    position: relative;
 }
 
 .product-table__handle {
@@ -368,10 +393,29 @@ export default {
 }
 
 .product-table__row {
+    position: relative;
     display: grid;
     grid-template-columns: 83px auto;
     padding-bottom: 10px;
     user-select: none;
+    background-color: #fff;
+}
+
+.product-table__border-shadows {
+    position: absolute;
+    width: 100%;
+}
+
+.product-table__border-shadow {
+    width: 100%;
+    height: 43px;
+    z-index: 0;
+    visibility: visible;
+    opacity: 1;
+    border-radius: 5px;
+    border: 2px dashed #a6b7d4;
+    background-color: transparent;
+    margin-bottom: 2px;
 }
 
 .product-table__row>span {
@@ -389,7 +433,8 @@ export default {
 }
 
 .product-table__row-body {
-    grid-template-columns: v-bind(bodyGrid);
+    /* grid-template-columns: v-bind(bodyGrid); */
+    grid-template-columns: 460.32000000000005px 161.84px 161.84px 161.84px 127.16000000000001px;
 }
 
 /* .cell {
@@ -455,6 +500,10 @@ export default {
     display: flex;
     flex-direction: column;
     gap: 15px;
+}
+
+.total-summ__full {
+    margin-bottom: 0;
 }
 
 .total-summ__full .total-summ__title {

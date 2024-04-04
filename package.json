@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@bhplugin/vue3-datatable": "^1.1.4",
+    "msw": "^2.2.13",
     "vue": "^3.4.21",
     "vue-resizables": "^0.7.1",
     "vue-slicksort": "^2.0.5",
