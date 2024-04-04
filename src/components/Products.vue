@@ -2,6 +2,7 @@
 import '@bhplugin/vue3-datatable/dist/style.css'
 import { SlickList, SlickItem, DragHandle } from 'vue-slicksort';
 import TabsNav from './TabsNav.vue'
+import fetchDataMixin from './../mixins/fetchData'
 export default {
     components: {
         TabsNav,
@@ -37,6 +38,13 @@ export default {
             }
         }
     },
+    mixins: [fetchDataMixin],
+    watch: {
+        products() {
+            this.setGrid()
+            this.setTotal()
+        }
+    },
     methods: {
         getPrice(product) {
             return parseFloat(product.cost) * parseFloat(product.amount);
@@ -51,7 +59,6 @@ export default {
             this.weight = this.getTotalValue("weight")
         },
         resizeHandler(event) {
-            console.log(event)
             event.preventDefault();
             this.startX = event.pageX;
             this.resingColumn = event.target.closest('[data-target]')
@@ -69,29 +76,17 @@ export default {
             const shownColsArray = Object.entries(this.cols);
             const index = shownColsArray.findIndex((el) => el[0] === target)
             if (index >= 0) {
-                // console.log(target, shownColsArray[index + 1][0])
                 const width = this.cols[target].width + event.pageX - this.startX;
                 if (width === this.cols[target].width || (event.pageX - this.startX) === 0) return
-                // console.log(width, this.startWidth, target)
                 const reliableWidth = (val, summWidth) => {
                     return val >= 100 ? ((summWidth - val) <= 100 ? summWidth - 100 : val) : 100
                 }
-                const isValAuto = Boolean(shownColsArray[index][1].defaultProcent)
-                // console.log(shownColsArray[index])
-                const oldProcentWidth = isValAuto ? this.startWidth : shownColsArray[index][1].width
-                // console.log('shdj', shownColsArray[index][1].width)
-                const newProcentWidth = (width - this.startWidth) * (this.tableWidth / 100)
-                // console.log('wqhjq', width - this.startWidth, this.tableWidth / 100)
-                // console.log('wustyd', width, this.startWidth, oldProcentWidth, newProcentWidth)
-                const nextWidth = shownColsArray[index + 1][1].width
+
                 const summWidth = (this.cols[target].width +  this.cols[shownColsArray[index + 1][0]].width)
-                // console.log(oldProcentWidth + newProcentWidth, oldProcentWidth - newProcentWidth)
                 const newNextWidth = summWidth - width
                 this.cols[target].width = reliableWidth(width, summWidth)
-                console.log('summWidth', summWidth)
-                // console.log(reliableWidth(width, summWidth) + reliableWidth(newNextWidth, summWidth))
+
                 this.cols[shownColsArray[index + 1][0]].width = reliableWidth(newNextWidth, summWidth)
-                // console.log(this.cols[target].width, this.cols[shownColsArray[index + 1][0]].width)
                 this.setGrid()
             }
         },
@@ -107,15 +102,12 @@ export default {
             const filtered = shownColsArray(this.cols); 
             const grid = filtered.filter((el) => el[1].defaultProcent).map((el) => {
                 const column = Math.abs( el[1].width ? el[1].width : tableProcent * el[1].defaultProcent )
-                // console.log(this.cols[el[0]].width, column)
                 this.cols[el[0]].width = column
                 return column
             })
-            console.log(grid.reduce((a, b) => a + b, 0))
+
             this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-            console.log(this.headerGrid);
             document.querySelectorAll('.product-table__row-body').forEach((el) => el.style.gridTemplateColumns = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`)
-            // this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
         },
         toggleColumn(event, col) {
             col.hide = !event.target.checked
@@ -132,32 +124,22 @@ export default {
                 });
             this.products[this.products.length - 1].price = this.products[this.products.length - 1].cost * this.products[this.products.length - 1].amount
             this.setTotal()
-        }
+        },
+
     },
 
     mounted() {
-        this.products = Array.apply(null, Array(12)).map(function (_, index) {
-            return {
-                "id": index,
-                "name": "Мраморный щебень фр. 2-5 мм, 25кг",
-                "cost": "1231",
-                "amount": "12",
-                "product_name": "Мраморный щебень",
-                "weight": 25
-            }
-        });
-        this.products.forEach((el) => {
-            el.price = el.cost * el.amount
-        })
-        this.names = Array(12).fill("Мраморный щебень фр. 2-5 мм, 25кг")
-        this.product_names = Array(12).fill("Мраморный щебень")
-        this.setGrid()
-        this.setTotal()
-        const bindedSetGrid = this.setGrid.bind(this)
+        setTimeout(() => {
+            this.fetchProducts()
+            this.fetchNames()
+            this.fetchProductsNames()
 
-        window.addEventListener('resize', () => {
-            bindedSetGrid()
-        }, true);
+            const bindedSetGrid = this.setGrid.bind(this)
+
+            window.addEventListener('resize', () => {
+                bindedSetGrid()
+            }, true);
+        }, 500)
     }
 }
 </script>
