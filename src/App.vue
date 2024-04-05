@@ -1,25 +1,30 @@
-<script setup>
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+<script>
+import H1Title from './components/H1Title.vue'
+import Sidebar from './components/Sidebar.vue'
+import Products from './components/Products.vue'
+export default {
+  components: {
+    H1Title,
+    Sidebar,
+    Products
+  }
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <H1Title />
+  <Sidebar />
+  <main class="main-wrapper">
+    <div class="container">
+      <Products />
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
   </main>
 </template>
 
 <style scoped>
 header {
   line-height: 1.5;
+  width: calc(100vw - 229px);
 }
 
 .logo {
@@ -31,7 +36,8 @@ header {
   header {
     display: flex;
     place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+    position: relative;
+    left: 229px;
   }
 
   .logo {

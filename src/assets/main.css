@@ -1,35 +1,66 @@
 @import './base.css';
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
   font-weight: normal;
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  background-color: var(--pale-grey-two);
 }
 
-a,
-.green {
+.main-wrapper {
+  position: relative;
+  left: 229px;
+  padding: 25px;
+  padding-top: 0;
+
+  width: calc(100vw - 229px);
+}
+
+.container {
+
+}
+
+a {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+.block-wrapper {
+  margin: 25px 0;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px 0 var(--black-7);
+  border: solid 1px var(--pale-grey);
+  background-color: #fff;
+  width: 100%;
 }
 
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
+.block-wrapper.with-padding {
+  padding: 20px 25px 20px 25px;
+}
 
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+.button {
+  outline: none;
+  appearance: none;
+  border: none;
+}
+
+.btn-primary {
+  padding: 10px 15px 10px 10px;
+  border-radius: 5px;
+  background-color: #2f8cff;
+  font-family: MyriadPro;
+  font-size: 14px;
+  font-weight: normal;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: normal;
+  letter-spacing: normal;
+  color: #fff;
+}
+
+.btn-primary svg {
+  fill: var(--light-navy);
+  margin-right: 7px;
 }
