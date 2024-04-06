@@ -417,15 +417,6 @@ export default {
     grid-template-columns: v-bind(headerGrid);
 }
 
-.product-table__row-body {
-    /* grid-template-columns: v-bind(bodyGrid); 
-    grid-template-columns: 460.32000000000005px 161.84px 161.84px 161.84px 127.16000000000001px;*/
-}
-
-/* .cell {
-    padding-left: 7.5px;
-} */
-
 .header-title {
     padding: 14px 0 14px 11px;
     font-family: MyriadPro;
