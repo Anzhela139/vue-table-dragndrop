@@ -109,8 +109,6 @@ export default {
 
             this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
             this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-            // console.log(this.tableWidth, grid.reduce((a, b) => a + b, 0),bodyGrid)
-            // document.querySelectorAll('.product-table__row-body').forEach((el) => el.style.gridTemplateColumns = bodyGrid)
         },
         toggleColumn(event, col) {
             col.hide = !event.target.checked

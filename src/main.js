@@ -3,7 +3,7 @@ import './assets/materialdesignicons.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
-// Vuetify
+
 import "vuetify/styles";
 import "@/styles/main.scss";
 import { createVuetify } from 'vuetify'
