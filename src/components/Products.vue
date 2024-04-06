@@ -3,6 +3,7 @@ import '@bhplugin/vue3-datatable/dist/style.css'
 import { SlickList, SlickItem, DragHandle } from 'vue-slicksort';
 import TabsNav from './TabsNav.vue'
 import fetchDataMixin from './../mixins/fetchData'
+import formatters from './../mixins/formatters'
 export default {
     components: {
         TabsNav,
@@ -38,7 +39,7 @@ export default {
             }
         }
     },
-    mixins: [fetchDataMixin],
+    mixins: [fetchDataMixin, formatters],
     watch: {
         products() {
             this.setGrid()
@@ -53,10 +54,10 @@ export default {
             return this.products.reduce((a, b) => a + parseFloat(b[val]), 0)
         },
         setTotal() {
-            this.cost = this.getTotalValue("cost")
-            this.amount = this.getTotalValue("amount")
-            this.price = this.getTotalValue("price")
-            this.weight = this.getTotalValue("weight")
+            this.cost = this.formatNum(this.getTotalValue("cost"))
+            this.amount = this.formatNum(this.getTotalValue("amount"))
+            this.price = this.formatNum(this.getTotalValue("price"))
+            this.weight = this.formatNum(this.getTotalValue("weight"))
         },
         resizeHandler(event) {
             event.preventDefault();
@@ -107,7 +108,7 @@ export default {
             })
 
             this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-            document.querySelectorAll('.product-table__row-body').forEach((el) => el.style.gridTemplateColumns = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`)
+            this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
         },
         toggleColumn(event, col) {
             col.hide = !event.target.checked
@@ -281,7 +282,7 @@ export default {
                                         </div>
                                     </div>
                                 </DragHandle>
-                                <div class="product-table__row-body">
+                                <div class="product-table__row-body" :style="{ 'grid-template-columns': bodyGrid }">
                                     <div class="cell body-cell" data-target="2" v-if="cols.name.show">
                                         <v-select :value="product.name" :items="names" variant="outlined"></v-select>
                                     </div>
@@ -413,15 +414,6 @@ export default {
 .product-table__header {
     grid-template-columns: v-bind(headerGrid);
 }
-
-.product-table__row-body {
-    /* grid-template-columns: v-bind(bodyGrid); */
-    grid-template-columns: 460.32000000000005px 161.84px 161.84px 161.84px 127.16000000000001px;
-}
-
-/* .cell {
-    padding-left: 7.5px;
-} */
 
 .header-title {
     padding: 14px 0 14px 11px;
