@@ -10,16 +10,16 @@ import Hamburger from './icons/Hamburger.vue'
 import ThreeDots from './icons/ThreeDots.vue'
 import ArrowRight from './icons/ArrowRight.vue'
 
-const cols = {
-    'name': { title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
-    'cost': { title: 'Цена', id: '1', show: true, defaultProcent: 14, width: 0 },
-    'amount': { title: 'Кол-во', id: '2', show: true, defaultProcent: 14, width: 0 },
-    'product_name': { title: 'Название товара', id: '3', show: true, defaultProcent: 14, width: 0 },
-    'company': { title: 'Компания', id: '4', show: false, defaultProcent: 14, width: 0 },
-    'price': { title: 'Итого', id: '5', show: true, defaultProcent: 11, width: 0 },
-    'weight': { title: 'Вес', type: 'number', id: '6', show: false, defaultProcent: 11, width: 0 },
-    'isActive': { title: 'Активен', type: 'bool', id: '7', show: false, defaultProcent: 11, width: 0 },
-}
+const cols = [
+    { name: 'name', title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
+    { name: 'cost', title: 'Цена', id: '1', show: true, defaultProcent: 14, width: 0 },
+    { name: 'amount', title: 'Кол-во', id: '2', show: true, defaultProcent: 14, width: 0 },
+    { name: 'product_name', title: 'Название товара', id: '3', show: true, defaultProcent: 14, width: 0 },
+    { name: 'company', title: 'Компания', id: '4', show: false, defaultProcent: 14, width: 0 },
+    { name: 'price', title: 'Итого', id: '5', show: true, defaultProcent: 11, width: 0 },
+    { name: 'weight', title: 'Вес', type: 'number', id: '6', show: false, defaultProcent: 11, width: 0 },
+    { name: 'isActive', title: 'Активен', type: 'bool', id: '7', show: false, defaultProcent: 11, width: 0 },
+]
 
 export default {
     components: {
@@ -51,8 +51,16 @@ export default {
             tableWidth: 1092,
             headerGrid: '50px repeat(6, auto)',
             bodyGrid: 'repeat(5, auto)',
-            cols: cols,
-            colsArray: Object.entries(cols).filter((el) => el[1].show)
+            cols: [
+                { name: 'name', title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
+                { name: 'cost', title: 'Цена', id: '1', show: true, defaultProcent: 14, width: 0 },
+                { name: 'amount', title: 'Кол-во', id: '2', show: true, defaultProcent: 14, width: 0 },
+                { name: 'product_name', title: 'Название товара', id: '3', show: true, defaultProcent: 14, width: 0 },
+                { name: 'company', title: 'Компания', id: '4', show: false, defaultProcent: 14, width: 0 },
+                { name: 'price', title: 'Итого', id: '5', show: true, defaultProcent: 11, width: 0 },
+                { name: 'weight', title: 'Вес', type: 'number', id: '6', show: false, defaultProcent: 11, width: 0 },
+                { name: 'isActive', title: 'Активен', type: 'bool', id: '7', show: false, defaultProcent: 11, width: 0 },
+            ]
         }
     },
     mixins: [fetchDataMixin, formatters],
@@ -113,13 +121,11 @@ export default {
         setGrid() {
             this.tableWidth = this.$refs.table.getBoundingClientRect().width
             const tableProcent = this.tableWidth / 100
-            const shownColsArray = (obj) => Object.entries(obj).filter((el) => el[1].show);
 
-
-            const filtered = shownColsArray(this.cols);
-            const grid = filtered.filter((el) => el[1].defaultProcent).map((el) => {
-                const column = Math.abs(el[1].width ? el[1].width : tableProcent * el[1].defaultProcent)
-                this.cols[el[0]].width = column
+            const filtered = this.cols.filter((el) => el.show);
+            const grid = filtered.filter((el) => el.defaultProcent).map((el) => {
+                const column = Math.abs(el.width ? el.width : tableProcent * el.defaultProcent)
+                this.cols[el].width = column
                 return column
             })
 
@@ -216,26 +222,12 @@ export default {
                         <div class="resizer"></div>
                         Действие
                     </div>
-                    <div class="cell header-title" v-if="cols.name.show">
-                        <div class="resizer"></div>
-                        Наименование еденицы
-                    </div>
-                    <div class="cell header-title" data-target="name" v-if="cols.cost.show">
-                        <div class="resizer" @mousedown="resizeHandler"></div>
-                        Цена
-                    </div>
-                    <div class="cell header-title" data-target="cost" v-if="cols.amount.show">
-                        <div class="resizer" @mousedown="resizeHandler"></div>
-                        Кол-во
-                    </div>
-                    <div class="cell header-title" data-target="amount" v-if="cols.product_name.show">
-                        <div class="resizer" @mousedown="resizeHandler"></div>
-                        Название товара
-                    </div>
-                    <div class="cell header-title ls-column" data-target="product_name" v-if="cols.price.show">
-                        <div class="resizer" @mousedown="resizeHandler"></div>
-                        Итого
-                    </div>
+                    <template v-for="col, index in cols">
+                        <div class="cell header-title" v-if="col?.show" :data-target="cols[index - 1]?.name" :class="{ 'ls-column': index === cols.length - 1 }">
+                            <div class="resizer" @mousedown="resizeHandler"></div>
+                            {{ col.title }}
+                        </div>
+                    </template>
                 </div>
                 <div class="product-table__body">
                     <div class="product-table__border-shadows">
@@ -324,7 +316,7 @@ export default {
     cursor: pointer;
 }
 
-.filter-list > div > div {
+.filter-list>div>div {
     padding: 4px 8px;
 }
 
