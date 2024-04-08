@@ -1,24 +1,22 @@
 <script>
 import '@bhplugin/vue3-datatable/dist/style.css'
 import { SlickList, SlickItem, DragHandle } from 'vue-slicksort';
-import TabsNav from './TabsNav.vue'
+import SvgIcon from '@jamescoyle/vue-icon'
+
 import fetchDataMixin from './../mixins/fetchData'
 import formatters from './../mixins/formatters'
-import Settings from './icons/Settings.vue'
-import Plus from './icons/Plus.vue'
-import Hamburger from './icons/Hamburger.vue'
-import ThreeDots from './icons/ThreeDots.vue'
+import { mdiMenu } from '@mdi/js';
+import { mdiDotsVertical } from '@mdi/js';
+import { mdiCog } from '@mdi/js';
+import { mdiPlus } from '@mdi/js';
+import { mdiTrashCan } from '@mdi/js';
 
 export default {
     components: {
-        TabsNav,
         SlickList,
         SlickItem,
         DragHandle,
-        Settings,
-        Plus,
-        Hamburger,
-        ThreeDots
+        SvgIcon
     },
     data() {
         return {
@@ -36,6 +34,11 @@ export default {
             tableWidth: 1092,
             headerGrid: '50px repeat(6, auto)',
             bodyGrid: 'repeat(5, auto)',
+            mdiMenu: mdiMenu,
+            mdiDotsVertical: mdiDotsVertical,
+            mdiCog: mdiCog,
+            mdiPlus: mdiPlus,
+            mdiTrashCan: mdiTrashCan,
             cols: {
                 'name': { title: 'Наименование еденицы', show: true, defaultProcent: 0, width: 0 },
                 'cost': { title: 'Цена', show: true, defaultProcent: 14, width: 0 },
@@ -116,8 +119,16 @@ export default {
                 return column
             })
 
-            this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-            this.bodyGrid = `${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
+            this.headerGrid = `83px ${Math.abs(this.tableWidth - 129 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px  46px`
+            this.bodyGrid = `${Math.abs(this.tableWidth - 129 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px 46px`
+        },
+        toggleSelectColumn(event) {
+            event.stopPropagation()
+            if (event.target.closest('.filter-wrapper')) {
+                this.isOpen = !this.isOpen
+            } else {
+                this.isOpen = false
+            }
         },
         toggleColumn(event, col) {
             col.hide = !event.target.checked
@@ -155,51 +166,44 @@ export default {
 </script>
 
 <template>
-    <TabsNav />
-    <div class="filter-wrapper">
-        <div class="filter-select" @click="isOpen = !isOpen">
-            <Settings />
+    <div class="block-wrapper" @click="toggleSelectColumn">
+        <div class="filter-wrapper">
+            <div class="filter-select" @click="toggleSelectColumn">
+                <svg-icon type="mdi" :path="mdiCog"></svg-icon>
+            </div>
+            <ul v-if="isOpen" class="filter-list">
+                <li v-for="col in cols" :key="col.field">
+                    <v-checkbox :label="col.title" :checked="!col.hide" @change="toggleColumn($event, col)"
+                        :color="'#000'" v-model="col.show"></v-checkbox>
+                </li>
+            </ul>
         </div>
-        <ul v-if="isOpen" class="filter-list">
-            <li v-for="col in cols" :key="col.field">
-                <v-checkbox :label="col.title" :checked="!col.hide" @change="toggleColumn($event, col)"
-                    :color="'#000'" v-model="col.show"></v-checkbox>
-            </li>
-        </ul>
-    </div>
-    <div class="block-wrapper with-padding" @click="isOpen = false">
-        <button class="button btn-add btn-primary" type="button" @click="addProduct">
-            <Plus />
-            Добавить строку</button>
-    </div>
-    <div class="block-wrapper" @click="isOpen = false">
         <div class="product-table__wrapper">
             <div class="product-table resizable-table" ref="table">
                 <div class="product-table__header">
                     <div class="cell header-title fr-column"></div>
-                    <div class="cell header-title">
-                        <div class="resizer"></div>
-                        Действие
-                    </div>
                     <div class="cell header-title" v-if="cols.name.show">
                         <div class="resizer"></div>
-                        Наименование еденицы
+                        Name of the unit
                     </div>
                     <div class="cell header-title" data-target="name" v-if="cols.cost.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
-                        Цена
+                        Cost
                     </div>
                     <div class="cell header-title" data-target="cost" v-if="cols.amount.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
-                        Кол-во
+                        Amount
                     </div>
                     <div class="cell header-title" data-target="amount" v-if="cols.product_name.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
-                        Название товара
+                        Product name
                     </div>
-                    <div class="cell header-title ls-column" data-target="product_name" v-if="cols.price.show">
+                    <div class="cell header-title" data-target="product_name" v-if="cols.price.show">
                         <div class="resizer" @mousedown="resizeHandler"></div>
-                        Итого
+                        Total
+                    </div>
+                    <div class="cell header-title ls-column">
+                        <div class="resizer"></div>
                     </div>
                 </div>
                 <div class="product-table__body">
@@ -212,11 +216,11 @@ export default {
                                 <DragHandle>
                                     <div class="product-table__handle">
                                         <div class="cell body-cell fr-column" data-target="0">
-                                            <Hamburger />
+                                            <svg-icon type="mdi" :path="mdiMenu"></svg-icon>
                                             {{ index + 1 }}
                                         </div>
                                         <div class="cell body-cell" data-target="1">
-                                            <ThreeDots />
+                                            <svg-icon type="mdi" :path="mdiDotsVertical"></svg-icon>
                                         </div>
                                     </div>
                                 </DragHandle>
@@ -234,9 +238,12 @@ export default {
                                         <v-select :value="product.product_name" :items="product_names"
                                             variant="outlined"></v-select>
                                     </div>
-                                    <div class="cell body-cell ls-column" data-target="6" v-if="cols.price.show">
+                                    <div class="cell body-cell" data-target="6" v-if="cols.price.show">
                                         <v-text-field :value="getPrice(product)" disabled
                                             variant="outlined"></v-text-field>
+                                    </div>
+                                    <div class="cell body-cell ls-column" data-target="7">
+                                        <svg-icon type="mdi" :path="mdiTrashCan"></svg-icon>
                                     </div>
                                 </div>
                             </div>
@@ -245,24 +252,28 @@ export default {
                     </SlickList>
                 </div>
             </div>
+            <button class="button btn-add btn-primary" type="button" @click="addProduct">
+                <svg-icon type="mdi" :path="mdiPlus"></svg-icon>
+                Add row
+            </button>
             <div class="total-wrapper">
                 <div class="total-summ__full">
                     <div class="total-sum__full-item">
-                        <div class="total-summ__title">Сумма:</div>
+                        <div class="total-summ__title">Sum:</div>
                         <div class="total-summ__value">{{ cost }} руб</div>
                     </div>
                     <div class="total-sum__full-item">
-                        <div class="total-summ__title">Кол-во:</div>
+                        <div class="total-summ__title">Amount:</div>
                         <div class="total-summ__value">{{ amount }} шт</div>
                     </div>
                     <div class="total-sum__full-item">
-                        <div class="total-summ__title">Общий вес:</div>
+                        <div class="total-summ__title">Total weight:</div>
                         <div class="total-summ__value">{{ weight }} кг</div>
                     </div>
                 </div>
                 <div class="total-summ">
                     <div class="total-sum__full-item">
-                        <div class="total-summ__title">Общая сумма:</div>
+                        <div class="total-summ__title">Total price:</div>
                         <div class="total-summ__value">{{ price }} руб</div>
                     </div>
                 </div>
@@ -273,7 +284,9 @@ export default {
 
 <style>
 .filter-wrapper {
-    position: relative;
+    position: absolute;
+    right: 5px;
+    top: 5px;
     display: flex;
     justify-content: flex-end;
 }
@@ -282,6 +295,8 @@ export default {
     position: absolute;
     z-index: 5;
     top: 25px;
+    right: 0;
+    min-width: 250px;
     border-radius: 5px;
     box-shadow: 0 5px 20px 0 var(--black-7);
     border: solid 1px var(--pale-grey);

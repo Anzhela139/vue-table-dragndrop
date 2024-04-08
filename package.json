@@ -10,9 +10,12 @@
   },
   "dependencies": {
     "@bhplugin/vue3-datatable": "^1.1.4",
+    "@jamescoyle/vue-icon": "^0.1.2",
+    "@mdi/js": "^7.4.47",
     "msw": "^2.2.13",
     "vue": "^3.4.21",
     "vue-resizables": "^0.7.1",
+    "vue-router": "^4.3.0",
     "vue-slicksort": "^2.0.5",
     "vuedraggable": "^2.24.3",
     "vuetify": "^3.5.13"

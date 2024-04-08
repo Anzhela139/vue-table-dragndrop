@@ -2,8 +2,10 @@
 import H1Title from './components/H1Title.vue'
 import Sidebar from './components/Sidebar.vue'
 import Products from './components/Products.vue'
+import TabsNav from './components/TabsNav.vue'
 export default {
   components: {
+    TabsNav,
     H1Title,
     Sidebar,
     Products
@@ -16,7 +18,8 @@ export default {
   <Sidebar />
   <main class="main-wrapper">
     <div class="container">
-      <Products />
+      <TabsNav />
+      <RouterView />
     </div>
   </main>
 </template>

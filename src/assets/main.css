@@ -24,6 +24,7 @@ a {
 }
 
 .block-wrapper {
+  position: relative;
   margin: 25px 0;
   border-radius: 10px;
   box-shadow: 0 5px 20px 0 var(--black-7);
@@ -47,6 +48,8 @@ a {
   border-radius: 5px;
   background-color: #2f8cff;
   font-family: MyriadPro;
+  display: flex;
+  align-items: center;
   font-size: 14px;
   font-weight: normal;
   font-stretch: normal;

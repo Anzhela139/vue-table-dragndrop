@@ -5,21 +5,21 @@ const handlers = [
         const products = Array.apply(null, Array(12)).map(function (_, index) {
             return {
                 "id": index,
-                "name": "Мраморный щебень фр. 2-5 мм, 25кг",
+                "name": `Name option №${index + 1} 25kg`,
                 "cost": "1231",
                 "amount": "12",
-                "product_name": "Мраморный щебень",
+                "product_name": `Name option №${index + 1}`,
                 "weight": 25
             }
         });
         return HttpResponse.json(products);
     }),
     http.get('api/names', () => {
-        const names = Array(12).fill("Мраморный щебень фр. 2-5 мм, 25кг")
+        const names = Array(12).fill("Name option №0 фр. 2-5 мм, 25кг")
         return HttpResponse.json(names);
     }),
     http.get('api/product_names', () => {
-        const productNames = Array(12).fill("Мраморный щебень")
+        const productNames = Array(12).fill("Name option")
         return HttpResponse.json(productNames);
     })
 ]

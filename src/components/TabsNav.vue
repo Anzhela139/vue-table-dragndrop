@@ -4,14 +4,14 @@
 
 <template>
     <div class="tabs-btn-wrapper">
-        <div class="tab-btn">
-            <a href="" class="tab-link">Общее</a>
-        </div>
         <div class="tab-btn active">
-            <a href="" class="tab-link">Товары</a>
+            <RouterLink to="/" class="tab-link">Drag'n'drop data table</RouterLink>
         </div>
         <div class="tab-btn">
-            <a href="" class="tab-link">Доп. расходы</a>
+            <RouterLink to="/not-yet" class="tab-link">Not implemented</RouterLink>
+        </div>
+        <div class="tab-btn">
+            <RouterLink to="/not-yet" class="tab-link">Not implemented</RouterLink>
         </div>
     </div>
 </template>
