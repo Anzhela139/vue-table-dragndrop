@@ -8,6 +8,18 @@ import Settings from './icons/Settings.vue'
 import Plus from './icons/Plus.vue'
 import Hamburger from './icons/Hamburger.vue'
 import ThreeDots from './icons/ThreeDots.vue'
+import ArrowRight from './icons/ArrowRight.vue'
+
+const cols = {
+    'name': { title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
+    'cost': { title: 'Цена', id: '1', show: true, defaultProcent: 14, width: 0 },
+    'amount': { title: 'Кол-во', id: '2', show: true, defaultProcent: 14, width: 0 },
+    'product_name': { title: 'Название товара', id: '3', show: true, defaultProcent: 14, width: 0 },
+    'company': { title: 'Компания', id: '4', show: false, defaultProcent: 14, width: 0 },
+    'price': { title: 'Итого', id: '5', show: true, defaultProcent: 11, width: 0 },
+    'weight': { title: 'Вес', type: 'number', id: '6', show: false, defaultProcent: 11, width: 0 },
+    'isActive': { title: 'Активен', type: 'bool', id: '7', show: false, defaultProcent: 11, width: 0 },
+}
 
 export default {
     components: {
@@ -18,11 +30,14 @@ export default {
         Settings,
         Plus,
         Hamburger,
-        ThreeDots
+        ThreeDots,
+        ArrowRight
     },
     data() {
         return {
-            isOpen: false,
+            isFilterOpen: false,
+            isFilterColumnsToggle: false,
+            isFilterColumnsOrder: false,
             products: [],
             names: [],
             product_names: [],
@@ -36,16 +51,8 @@ export default {
             tableWidth: 1092,
             headerGrid: '50px repeat(6, auto)',
             bodyGrid: 'repeat(5, auto)',
-            cols: {
-                'name': { title: 'Наименование еденицы', show: true, defaultProcent: 0, width: 0 },
-                'cost': { title: 'Цена', show: true, defaultProcent: 14, width: 0 },
-                'amount': { title: 'Кол-во', show: true, defaultProcent: 14, width: 0 },
-                'product_name': { title: 'Название товара', show: true, defaultProcent: 14, width: 0 },
-                'company': { title: 'Компания', show: false, defaultProcent: 14, width: 0 },
-                'price': { title: 'Итого', show: true, defaultProcent: 11, width: 0 },
-                'weight': { title: 'Вес', type: 'number', show: false, defaultProcent: 11, width: 0 },
-                'isActive': { title: 'Активен', type: 'bool', show: false, defaultProcent: 11, width: 0 },
-            }
+            cols: cols,
+            colsArray: Object.entries(cols).filter((el) => el[1].show)
         }
     },
     mixins: [fetchDataMixin, formatters],
@@ -92,7 +99,7 @@ export default {
                     return val >= 100 ? ((summWidth - val) <= 100 ? summWidth - 100 : val) : 100
                 }
 
-                const summWidth = (this.cols[target].width +  this.cols[shownColsArray[index + 1][0]].width)
+                const summWidth = (this.cols[target].width + this.cols[shownColsArray[index + 1][0]].width)
                 const newNextWidth = summWidth - width
                 this.cols[target].width = reliableWidth(width, summWidth)
 
@@ -109,9 +116,9 @@ export default {
             const shownColsArray = (obj) => Object.entries(obj).filter((el) => el[1].show);
 
 
-            const filtered = shownColsArray(this.cols); 
+            const filtered = shownColsArray(this.cols);
             const grid = filtered.filter((el) => el[1].defaultProcent).map((el) => {
-                const column = Math.abs( el[1].width ? el[1].width : tableProcent * el[1].defaultProcent )
+                const column = Math.abs(el[1].width ? el[1].width : tableProcent * el[1].defaultProcent)
                 this.cols[el[0]].width = column
                 return column
             })
@@ -125,16 +132,28 @@ export default {
         },
         addProduct() {
             this.products.push({
-                    "id": this.products.length,
-                    "name": "Мраморный щебень фр. 2-5 мм, 25кг",
-                    "cost": "1231",
-                    "amount": "12",
-                    "product_name": "Мраморный щебень",
-                    "weight": 25
-                });
+                "id": this.products.length,
+                "name": "Мраморный щебень фр. 2-5 мм, 25кг",
+                "cost": "1231",
+                "amount": "12",
+                "product_name": "Мраморный щебень",
+                "weight": 25
+            });
             this.products[this.products.length - 1].price = this.products[this.products.length - 1].cost * this.products[this.products.length - 1].amount
             this.setTotal()
         },
+        closeFilters() {
+            this.isFilterOpen = false
+            this.isFilterColumnsOrder = false
+            this.isFilterColumnsToggle = false
+        },
+        openDefiniteFilter(event) {
+            console.log(event.target.classList)
+            const isToggle = event.target.classList?.contains('first-choice')
+            this.isFilterOpen = false
+            this.isFilterColumnsOrder = !isToggle
+            this.isFilterColumnsToggle = isToggle
+        }
 
     },
 
@@ -157,22 +176,38 @@ export default {
 <template>
     <TabsNav />
     <div class="filter-wrapper">
-        <div class="filter-select" @click="isOpen = !isOpen">
+        <div class="filter-select" @click="isFilterOpen = !isFilterOpen">
             <Settings />
         </div>
-        <ul v-if="isOpen" class="filter-list">
-            <li v-for="col in cols" :key="col.field">
-                <v-checkbox :label="col.title" :checked="!col.hide" @change="toggleColumn($event, col)"
-                    :color="'#000'" v-model="col.show"></v-checkbox>
+        <ul v-if="isFilterOpen" class="filter-list">
+            <li class="filter-choice first-choice" @click="openDefiniteFilter">Отображение столбцов
+                <ArrowRight />
+            </li>
+            <li class="filter-choice second-choice" @click="openDefiniteFilter">Порядок столбцов
+                <ArrowRight />
             </li>
         </ul>
+        <ul v-if="isFilterColumnsToggle" class="filter-list">
+            <li v-for="col in cols" :key="col.field">
+                <v-checkbox :label="col.title" :checked="!col.hide" @change="toggleColumn($event, col)" :color="'#000'"
+                    v-model="col.show"></v-checkbox>
+            </li>
+        </ul>
+        <div v-if="isFilterColumnsOrder" class="filter-list">
+            <SlickList axis="y" v-model:list="colsArray">
+                <SlickItem v-for="(col, index) in colsArray" :key="cols.id" :index="index">
+                    {{ col[1].title }}
+                </SlickItem>
+            </SlickList>
+        </div>
     </div>
-    <div class="block-wrapper with-padding" @click="isOpen = false">
+    <div class="block-wrapper with-padding" @click="closeFilters">
         <button class="button btn-add btn-primary" type="button" @click="addProduct">
             <Plus />
-            Добавить строку</button>
+            Добавить строку
+        </button>
     </div>
-    <div class="block-wrapper" @click="isOpen = false">
+    <div class="block-wrapper" @click="closeFilters">
         <div class="product-table__wrapper">
             <div class="product-table resizable-table" ref="table">
                 <div class="product-table__header">
@@ -282,14 +317,46 @@ export default {
     position: absolute;
     z-index: 5;
     top: 25px;
+    min-width: 179px;
     border-radius: 5px;
-    box-shadow: 0 5px 20px 0 var(--black-7);
-    border: solid 1px var(--pale-grey);
+    box-shadow: 0 0 3px 0 #000, inset 0 1px 2px 0 rgba(255, 255, 255, 0.5);
     background-color: #fff;
+    cursor: pointer;
+}
+
+.filter-list > div > div {
+    padding: 4px 8px;
+}
+
+.first-choice {
+    border-radius: 5px 5px 0 0;
+}
+
+.second-choice {
+    border-radius: 0 0 5px 5px;
 }
 
 .filter-list li {
     list-style: none;
+}
+
+.filter-choice {
+    padding: 7px 10px;
+    font-family: MyriadPro;
+    font-size: 14px;
+    font-weight: normal;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: normal;
+    letter-spacing: normal;
+    color: #161616;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-choice:hover {
+    background-color: #eef3f8;
 }
 
 .product-table {
@@ -309,7 +376,7 @@ export default {
 
 .product-table__handle .body-cell {
     display: flex;
-    align-items: center; 
+    align-items: center;
     gap: 5px;
 }
 
