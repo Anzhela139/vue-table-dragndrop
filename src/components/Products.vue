@@ -10,7 +10,7 @@ import Plus from './icons/Plus.vue'
 import Hamburger from './icons/Hamburger.vue'
 import ThreeDots from './icons/ThreeDots.vue'
 import ArrowRight from './icons/ArrowRight.vue'
-import ts from './tree.js'
+import ts from './tree.ts'
 
 const cols = [
     { name: 'name', title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
