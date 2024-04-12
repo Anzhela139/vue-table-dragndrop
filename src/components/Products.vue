@@ -1,551 +1,83 @@
-<script>
-import '@bhplugin/vue3-datatable/dist/style.css'
-import { SlickList, SlickItem, DragHandle } from 'vue-slicksort';
-import DataTable from 'datatables.net-dt';
-import 'datatables.net-buttons-dt';
-import 'datatables.net-buttons/js/buttons.colVis.mjs';
-import 'datatables.net-colreorder-dt';
-import 'datatables.net-rowreorder-dt';
-import TabsNav from './TabsNav.vue'
-import fetchDataMixin from './../mixins/fetchData'
-import formatters from './../mixins/formatters'
-import Settings from './icons/Settings.vue'
-import Plus from './icons/Plus.vue'
-import Hamburger from './icons/Hamburger.vue'
-import ThreeDots from './icons/ThreeDots.vue'
-import ArrowRight from './icons/ArrowRight.vue'
-
-const cols = [
-    { name: 'name', title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
-    { name: 'cost', title: 'Цена', id: '1', show: true, defaultProcent: 14, width: 0 },
-    { name: 'amount', title: 'Кол-во', id: '2', show: true, defaultProcent: 14, width: 0 },
-    { name: 'product_name', title: 'Название товара', id: '3', show: true, defaultProcent: 14, width: 0 },
-    { name: 'company', title: 'Компания', id: '4', show: false, defaultProcent: 14, width: 0 },
-    { name: 'price', title: 'Итого', id: '5', show: true, defaultProcent: 11, width: 0 },
-    { name: 'weight', title: 'Вес', type: 'number', id: '6', show: false, defaultProcent: 11, width: 0 },
-    { name: 'isActive', title: 'Активен', type: 'bool', id: '7', show: false, defaultProcent: 11, width: 0 },
-]
-
-export default {
-    components: {
-        TabsNav,
-        SlickList,
-        SlickItem,
-        DragHandle,
-        Settings,
-        Plus,
-        Hamburger,
-        ThreeDots,
-        ArrowRight
-    },
-    data() {
-        return {
-            isFilterOpen: false,
-            isFilterColumnsToggle: false,
-            isFilterColumnsOrder: false,
-            products: [],
-            names: [],
-            product_names: [],
-            cost: 0,
-            amount: 0,
-            price: 0,
-            weight: 0,
-            startX: 0,
-            resingColumn: null,
-            startWidth: 0,
-            tableWidth: 1092,
-            headerGrid: '50px repeat(6, auto)',
-            bodyGrid: 'repeat(5, auto)',
-            cols: [
-                { name: 'name', title: 'Наименование еденицы', id: '0', show: true, defaultProcent: 0, width: 0 },
-                { name: 'cost', title: 'Цена', id: '1', show: true, defaultProcent: 14, width: 0 },
-                { name: 'amount', title: 'Кол-во', id: '2', show: true, defaultProcent: 14, width: 0 },
-                { name: 'product_name', title: 'Название товара', id: '3', show: true, defaultProcent: 14, width: 0 },
-                { name: 'company', title: 'Компания', id: '4', show: false, defaultProcent: 14, width: 0 },
-                { name: 'price', title: 'Итого', id: '5', show: true, defaultProcent: 11, width: 0 },
-                { name: 'weight', title: 'Вес', type: 'number', id: '6', show: false, defaultProcent: 11, width: 0 },
-                { name: 'isActive', title: 'Активен', type: 'bool', id: '7', show: false, defaultProcent: 11, width: 0 },
-            ]
-        }
-    },
-    mixins: [fetchDataMixin, formatters],
-    // watch: {
-    //     products() {
-    //         this.setGrid()
-    //         this.setTotal()
-    //     }
-    // },
-    methods: {
-        getPrice(product) {
-            return parseFloat(product.cost) * parseFloat(product.amount);
-        },
-        getTotalValue(val) {
-            return this.products.reduce((a, b) => a + parseFloat(b[val]), 0)
-        },
-        setTotal() {
-            this.cost = this.formatNum(this.getTotalValue("cost"))
-            this.amount = this.formatNum(this.getTotalValue("amount"))
-            this.price = this.formatNum(this.getTotalValue("price"))
-            this.weight = this.formatNum(this.getTotalValue("weight"))
-        },
-        resizeHandler(event) {
-            event.preventDefault();
-            this.startX = event.pageX;
-            this.resingColumn = event.target.closest('[data-target]')
-
-            this.startWidth = parseInt(this.resingColumn.getBoundingClientRect().width);
-            const bindResizeColumn = this.resizeColumn.bind(this)
-            document.addEventListener('mousemove', bindResizeColumn, false);
-            document.addEventListener('mouseup', () => {
-                document.removeEventListener('mousemove', bindResizeColumn, false);
-            }, false);
-        },
-        resizeColumn(event) {
-            const target = this.resingColumn.dataset.target;
-
-            const shownColsArray = Object.entries(this.cols);
-            const index = shownColsArray.findIndex((el) => el[0] === target)
-            if (index >= 0) {
-                const width = this.cols[target].width + event.pageX - this.startX;
-                if (width === this.cols[target].width || (event.pageX - this.startX) === 0) return
-                const reliableWidth = (val, summWidth) => {
-                    return val >= 100 ? ((summWidth - val) <= 100 ? summWidth - 100 : val) : 100
-                }
-
-                const summWidth = (this.cols[target].width + this.cols[shownColsArray[index + 1][0]].width)
-                const newNextWidth = summWidth - width
-                this.cols[target].width = reliableWidth(width, summWidth)
-
-                this.cols[shownColsArray[index + 1][0]].width = reliableWidth(newNextWidth, summWidth)
-                this.setGrid()
-            }
-        },
-        stopResize() {
-            document.removeEventListener('mousemove', this.resizeColumn);
-        },
-        setGrid() {
-            this.tableWidth = this.$refs.table.getBoundingClientRect().width
-            const tableProcent = this.tableWidth / 100
-
-            const filtered = this.cols.filter((el) => el.show);
-            const grid = filtered.filter((el) => el.defaultProcent).map((el) => {
-                const column = Math.abs(el.width ? el.width : tableProcent * el.defaultProcent)
-                el.width = column
-                return column
-            })
-
-            this.headerGrid = `50px ${tableProcent * 9}px ${Math.abs(this.tableWidth - 50 - tableProcent * 9 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-            this.bodyGrid = `83px ${Math.abs(this.tableWidth - 83 - grid.reduce((a, b) => a + b, 0))}px ${grid.join('px ')}px`
-        },
-        toggleColumn(event, col) {
-            col.hide = !event.target.checked
-            this.setGrid()
-        },
-        addProduct() {
-            this.products.push({
-                "id": this.products.length,
-                "name": "Мраморный щебень фр. 2-5 мм, 25кг",
-                "cost": "1231",
-                "amount": "12",
-                "product_name": "Мраморный щебень",
-                "weight": 25
-            });
-            this.products[this.products.length - 1].price = this.products[this.products.length - 1].cost * this.products[this.products.length - 1].amount
-            this.setTotal()
-        },
-        closeFilters() {
-            this.isFilterOpen = false
-            this.isFilterColumnsOrder = false
-            this.isFilterColumnsToggle = false
-        },
-        openDefiniteFilter(event) {
-            console.log(event.target.classList)
-            const isToggle = event.target.classList?.contains('first-choice')
-            this.isFilterOpen = false
-            this.isFilterColumnsOrder = !isToggle
-            this.isFilterColumnsToggle = isToggle
-        }
-
-    },
-
-    mounted() {
-        setTimeout(() => {
-            Promise.all([
-                this.fetchProducts(),
-                this.fetchNames(),
-                this.fetchProductsNames()
-            ]).then((results) => {
-                return results.map((result) => result)
-            }).then((res) => {
-
-                    // const datateble = new DataTable('#example', {
-                    //     colReorder: true,
-                    //     rowReorder: true,
-                    //     pageLength: 13
-                    // });
-                    console.log(this.products)
-                    console.log(this.cols)
-                    // console.log(datateble)
-                this.setGrid()
-                this.setTotal()
-                const bindedSetGrid = this.setGrid.bind(this)
-
-                window.addEventListener('resize', () => {
-                    bindedSetGrid()
-                }, true);
-            }); 
-        }, 500)
-    }
-}
-</script>
-
 <template>
-    <TabsNav />
-    <div class="filter-wrapper">
-        <div class="filter-select" @click="isFilterOpen = !isFilterOpen">
-            <Settings />
-        </div>
-        <ul v-if="isFilterOpen" class="filter-list">
-            <li class="filter-choice first-choice" @click="openDefiniteFilter">Отображение столбцов
-                <ArrowRight />
-            </li>
-            <li class="filter-choice second-choice" @click="openDefiniteFilter">Порядок столбцов
-                <ArrowRight />
-            </li>
-        </ul>
-        <ul v-if="isFilterColumnsToggle" class="filter-list">
-            <li v-for="col in cols" :key="col.field">
-                <v-checkbox :label="col.title" :checked="!col.hide" @change="toggleColumn($event, col)" :color="'#000'"
-                    v-model="col.show"></v-checkbox>
-            </li>
-        </ul>
-        <div v-if="isFilterColumnsOrder" class="filter-list">
-            <SlickList axis="y" v-model:list="colsArray">
-                <SlickItem v-for="(col, index) in colsArray" :key="cols.id" :index="index">
-                    {{ col[1].title }}
-                </SlickItem>
-            </SlickList>
-        </div>
-    </div>
-    <div class="block-wrapper with-padding" @click="closeFilters">
-        <button class="button btn-add btn-primary" type="button" @click="addProduct">
-            <Plus />
-            Добавить строку
-        </button>
-    </div>
-    <div class="block-wrapper" @click="closeFilters">
-        <div class="product-table__wrapper">
-            <table id="example" class="product-table resizable-table" style="width:100%" ref="table">
-                <thead>
-                    <tr class="product-table__header">
-                        <th class="cell header-title fr-column"></th>
-                        <th class="cell header-title">
-                            <div class="resizer"></div>
-                            Действие
-                        </th>
-                        <th v-for="col, index in cols.filter((el) => el.show)">
-                            <div class="cell header-title" :data-target="cols[index - 1]?.name"
-                                :class="{ 'ls-column': index === cols.filter((el) => el.show).length - 1 }">
-                                <div class="resizer" @mousedown="resizeHandler"></div>
-                                {{ col.title }}
-                            </div>
-                        </th>
-                    </tr>
-                </thead>
-                <SlickList axis="y" v-model:list="products" useDragHandle tag="tbody">
-                    <SlickItem  v-for="(product, index) in products" :key="products.id" :index="index" tag="ttr"
-                        class="product-table__row" :style="{ 'grid-template-columns': bodyGrid }">
-                        <DragHandle tag="td" class="product-table__handle">
-                            <div class="cell body-cell fr-column" data-target="0">
-                                <Hamburger />
-                                {{ index + 1 }}
-                            </div>
-                            <div class="cell body-cell" data-target="1">
-                                <ThreeDots />
-                            </div>
-                        </DragHandle>
-                        <template v-for="col, index in cols.filter((el) => el.show)" >
-                            <td class="cell body-cell" :data-target="index">
-                                {{ product[col.name] }}
-                            </td>
-                        </template>
-                    </SlickItem>
-                </SlickList>
-            </table>
-            <div class="total-wrapper">
-                <div class="total-summ__full">
-                    <div class="total-sum__full-item">
-                        <div class="total-summ__title">Сумма:</div>
-                        <div class="total-summ__value">{{ cost }} руб</div>
-                    </div>
-                    <div class="total-sum__full-item">
-                        <div class="total-summ__title">Кол-во:</div>
-                        <div class="total-summ__value">{{ amount }} шт</div>
-                    </div>
-                    <div class="total-sum__full-item">
-                        <div class="total-summ__title">Общий вес:</div>
-                        <div class="total-summ__value">{{ weight }} кг</div>
-                    </div>
-                </div>
-                <div class="total-summ">
-                    <div class="total-sum__full-item">
-                        <div class="total-summ__title">Общая сумма:</div>
-                        <div class="total-summ__value">{{ price }} руб</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
-<style>
-.filter-wrapper {
-    position: relative;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.filter-list {
-    position: absolute;
-    z-index: 5;
-    top: 25px;
-    min-width: 179px;
-    border-radius: 5px;
-    box-shadow: 0 0 3px 0 #000, inset 0 1px 2px 0 rgba(255, 255, 255, 0.5);
-    background-color: #fff;
-    cursor: pointer;
-}
-
-.filter-list>div>div {
-    padding: 4px 8px;
-}
-
-.first-choice {
-    border-radius: 5px 5px 0 0;
-}
-
-.second-choice {
-    border-radius: 0 0 5px 5px;
-}
-
-.filter-list li {
-    list-style: none;
-}
-
-.filter-choice {
-    padding: 7px 10px;
-    font-family: MyriadPro;
-    font-size: 14px;
-    font-weight: normal;
-    font-stretch: normal;
-    font-style: normal;
-    line-height: normal;
-    letter-spacing: normal;
-    color: #161616;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.filter-choice:hover {
-    background-color: #eef3f8;
-}
-
-.product-table {
-    padding-top: 32px;
-}
-
-.product-table__body {
-    margin-top: 5px;
-    position: relative;
-}
-
-.product-table__handle {
-    display: grid;
-    grid-template-columns: 50px auto;
-    cursor: move;
-}
-
-.product-table__handle .body-cell {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.product-table__row {
-    position: relative;
-    display: grid;
-    padding-bottom: 10px;
-    user-select: none;
-    background-color: #fff;
-}
-
-.product-table__border-shadows {
-    position: absolute;
+    <table>
+      <thead>
+        <transition-group name="flip-list" tag="tr">
+          <th 
+            v-for="column in columns" :key="`column-${column}`"
+            :class="[isDraggbleColumn == column ? 'draggble' : '']"
+            v-text="column"
+            @mousedown="isDraggbleColumn = column"
+            @mouseover="sort(column)"
+            @mouseup="isDraggbleColumn = ''"
+          />
+        </transition-group>
+      </thead>
+      <tbody>
+        <template v-for="(row, index) in rows" :key="`row-${index}`">
+            <transition-group name="flip-list" tag="tr">
+            <td 
+                v-for="column in columns" :key="`column-${index}-${column}`"
+                :class="[isDraggbleColumn == column ? 'draggble' : '']"
+                v-text="row[column]"
+            />
+            </transition-group>
+        </template>
+      </tbody>
+    </table>
+  </template>
+  
+  <script>
+  export default {
+    name: 'TableSortable',
+    props: {
+      rows:    { type: Array, default: () => ([]) },
+      columns: { type: Array, default: () => ([]) },
+    },
+    data: () => ({
+      isDraggbleColumn: null,
+    }),
+    created() {
+      document.onmouseup = this.ClearDraggble
+    },
+    beforeDestroy() {
+      document.removeEventListener('mouseup', this.ClearDraggble)
+    },
+    methods: {
+      sort(column2) {
+        if (!this.isDraggbleColumn || column2 == this.isDraggbleColumn) return;
+        let columns = [...this.columns]
+        let indexColumn1 = columns.findIndex( column => column == this.isDraggbleColumn )
+        columns.splice(indexColumn1, 1)
+        let indexColumn2 = columns.findIndex( column => column == column2 )
+        let append = (indexColumn1 == indexColumn2) ? 1 : 0;
+        columns.splice(indexColumn2 + append, 0, this.isDraggbleColumn)
+        this.$emit('sort', columns)
+      },
+      ClearDraggble() {
+        this.isDraggbleColumn = null
+      }
+    }
+  }
+  </script>
+  
+  <style lang="scss">
+  table {
     width: 100%;
-}
-
-.product-table__border-shadow {
-    width: 100%;
-    height: 43px;
-    z-index: 0;
-    visibility: visible;
-    opacity: 1;
-    border-radius: 5px;
-    border: 2px dashed #a6b7d4;
-    background-color: transparent;
-    margin-bottom: 2px;
-}
-
-.product-table__row>span {
-    display: flex;
-    align-items: center;
-}
-
-.product-table__header,
-.product-table__row-body {
-    display: grid;
-}
-
-.product-table__header {
-    grid-template-columns: v-bind(headerGrid);
-}
-
-.header-title {
-    padding: 14px 0 14px 11px;
-    font-family: MyriadPro;
-    font-size: 16px;
-    font-weight: 600;
-    font-stretch: normal;
-    font-style: normal;
-    line-height: normal;
-    letter-spacing: normal;
-    color: #000;
-    position: relative;
-    border: 1px solid var(--pale-grey);
-    border-right: none;
-    border-left: none;
-    user-select: none;
-}
-
-.fr-column {
-    padding-left: 15px;
-}
-
-.ls-column {
-    padding-right: 15px;
-}
-
-.body-cell {
-    padding-left: 11px;
-    padding-right: 11px;
-}
-
-.resizer {
-    display: inline-block;
-    width: 1px;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    cursor: col-resize;
-    z-index: 4;
-    background-color: var(--pale-grey);
-}
-
-.total-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.total-summ__full,
-.total-summ {
-    width: 304px;
-    margin: 15px 14px;
-    padding: 15px;
-    border-radius: 5px;
-    border: solid 1px var(--pale-grey);
-    background-color: var(--pale-grey-two);
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.total-summ__full {
-    margin-bottom: 0;
-}
-
-.total-summ__full .total-summ__title {
-    font-family: MyriadPro;
-    font-size: 14px;
-    font-weight: normal;
-    font-stretch: normal;
-    font-style: normal;
-    line-height: normal;
-    letter-spacing: normal;
-    color: #8f8f8f;
-}
-
-.total-summ__full .total-summ__value {
-    font-family: MyriadPro;
-    font-size: 14px;
-    font-weight: normal;
-    font-stretch: normal;
-    font-style: normal;
-    line-height: normal;
-    letter-spacing: normal;
-    text-align: right;
-    color: #000;
-}
-
-.total-summ .total-summ__title {
-    font-family: MyriadPro;
-    font-size: 14px;
-    font-weight: normal;
-    font-stretch: normal;
-    font-style: normal;
-    line-height: normal;
-    letter-spacing: normal;
-    color: #000;
-}
-
-.total-sum__full-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.total-summ .total-summ__value {
-    font-family: MyriadPro;
-    font-size: 14px;
-    font-weight: 600;
-    font-stretch: normal;
-    font-style: normal;
-    line-height: normal;
-    letter-spacing: normal;
-    text-align: right;
-    color: #000;
-}
-
-.v-input__details {
-    padding-inline: 0 !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-}
-
-.v-messages {
-    min-height: 0 !important;
-}
-
-.v-field__input,
-.v-checkbox .v-selection-control {
-    min-height: 35px !important;
-    height: 35px !important;
-    padding-top: 5px !important;
-}
-
-.dt-layout-row:not(.dt-layout-table) {
-    display: none !important;
-}
-</style>
+    border:  1px solid #2c3e50;
+    background-color: darken(white, 5%);
+  
+    thead th {
+      border-bottom: 1px solid #2c3e50;
+      cursor: move;
+      user-select: none;
+    }
+  
+    .draggble { background-color: blue; }
+  }
+  </style>
+  
+  <style lang="scss" scoped>
+  .flip-list-move {
+    transition: transform .3s;
+  }
+  </style>

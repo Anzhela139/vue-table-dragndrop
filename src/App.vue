@@ -7,7 +7,16 @@ export default {
     H1Title,
     Sidebar,
     Products
-  }
+  },
+  data: () => ({
+    columns: [ '#', 'ФИО', 'Адрес', 'Телефон' ],
+    rows: [
+      { '#': '1',   ФИО: 'Иван',    Адрес: 'Улица Ведеркина, дом 1, кв 1', Телефон: '+7 999 123 123' },
+      { '#': '2',   ФИО: 'Женя',    Адрес: 'Улица Ведеркина, дом 2, кв 5', Телефон: '+7 999 554 123' },
+      { '#': '3',   ФИО: 'Евгений', Адрес: 'Улица Ведеркина, дом 3, кв 3', Телефон: '+7 999 123 321' },
+      { '#': '4',   ФИО: 'Дима',    Адрес: 'Улица Ведеркина, дом 4, кв 8', Телефон: '+7 999 777 123' },
+    ]
+  }),
 }
 </script>
 
@@ -16,7 +25,10 @@ export default {
   <Sidebar />
   <main class="main-wrapper">
     <div class="container">
-      <Products />
+      <Products       class="table" 
+      :rows=rows 
+      :columns=columns
+      @sort="ColumnsSort => columns = ColumnsSort" />
     </div>
   </main>
 </template>
