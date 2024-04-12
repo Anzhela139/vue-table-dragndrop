@@ -34,7 +34,7 @@
       columns: { type: Array, default: () => ([]) },
     },
     data: () => ({
-      isDraggbleColumn: null
+      isDraggbleColumn: null,
     }),
     created() {
       document.onmouseup = this.ClearDraggble
@@ -60,24 +60,19 @@
   }
   </script>
   
-  <style scoped lang="scss">
-$color: #2c3e50;
-$color-bg: white;
-$color-bg-active: darken($color-bg, 5%);
-
-$border: 1px solid $color;
+  <style lang="scss">
   table {
     width: 100%;
-    border: #{$border};
-    background-color: $color-bg;
+    border:  1px solid #2c3e50;
+    background-color: darken(white, 5%);
   
     thead th {
-      border-bottom: #{$border};
+      border-bottom: 1px solid #2c3e50;
       cursor: move;
       user-select: none;
     }
   
-    .draggble { background-color: $color-bg-active; }
+    .draggble { background-color: blue; }
   }
   </style>
   
