@@ -10,7 +10,10 @@
   },
   "dependencies": {
     "@bhplugin/vue3-datatable": "^1.1.4",
+    "datatables.net-buttons-dt": "^3.0.1",
+    "datatables.net-colreorder-dt": "^2.0.0",
     "datatables.net-dt": "^2.0.3",
+    "datatables.net-rowreorder-dt": "^1.5.0",
     "msw": "^2.2.13",
     "vue": "^3.4.21",
     "vue-resizables": "^0.7.1",

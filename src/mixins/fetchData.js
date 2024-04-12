@@ -5,14 +5,15 @@ const fetchDataMixin = {
             на netlify такой 
         */ 
         async fetchProducts() {
-            fetch('api/products')
+            return fetch('api/products')
                 .then(async (res) => {
                     const data = await res.json()
                     this.products = data
                     this.products.forEach((el) => {
                         el.price = el.cost * el.amount
                     })
-                    return true
+                    console.log(this.products[0].price)
+                    return Promise.resolve(this.products)
                 })
                 .catch((err) => {
                     console.log(err)
@@ -32,11 +33,12 @@ const fetchDataMixin = {
                     })
                 })
         },
-        fetchNames() {
-            fetch('api/names')
+        async fetchNames() {
+            return fetch('api/names')
                 .then(async (res) => {
                     const data = await res.json()
                     this.names = data
+                    return Promise.resolve(data)
                 })
                 .catch((err) => {
                     console.log(err)
@@ -44,11 +46,12 @@ const fetchDataMixin = {
                     this.names = names
                 })
         },
-        fetchProductsNames() {
-            fetch('api/product_names')
+        async fetchProductsNames() {
+            return fetch('api/product_names')
                 .then(async (res) => {
                     const data = await res.json()
                     this.product_names = data
+                    return Promise.resolve(data)
                 })
                 .catch((err) => console.log(err))
         }
