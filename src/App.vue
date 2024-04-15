@@ -25,10 +25,7 @@ export default {
   <Sidebar />
   <main class="main-wrapper">
     <div class="container">
-      <Products       class="table" 
-      :rows=rows 
-      :columns=columns
-      @sort="ColumnsSort => columns = ColumnsSort" />
+      <Products />
     </div>
   </main>
 </template>
